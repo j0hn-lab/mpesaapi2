@@ -57,38 +57,37 @@ app.post('/register-url', async (req, res) => {
   }
 });
 
-// Handle C2B payment
 app.post('/c2b-payment', async (req, res) => {
-  const { amount, phoneNumber, reference } = req.body;
-
-  // Validate request body
-  if (!amount || !phoneNumber || !reference) {
-    console.error('Invalid request body:', req.body);
-    return res.status(400).json({ error: 'Missing required fields: amount, phoneNumber, reference' });
-  }
-
-  const accessToken = await generateAccessToken();
-  const url = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/simulate';
-  const data = {
-    ShortCode: shortCode,
-    CommandID: 'CustomerPayBillOnline',
-    Amount: amount,
-    Msisdn: phoneNumber,
-    BillRefNumber: reference,
-  };
-  console.log('C2B Payment Payload:', data); // Log the payload
-  try {
-    const response = await axios.post(url, data, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    res.json(response.data);
-  } catch (error) {
-    console.error('Error simulating C2B payment:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: 'Failed to simulate C2B payment' });
-  }
-});
+    const { amount, phoneNumber, reference } = req.body;
+  
+    // Validate request body
+    if (!amount || !phoneNumber || !reference) {
+      console.error('Invalid request body:', req.body);
+      return res.status(400).json({ error: 'Missing required fields: amount, phoneNumber, reference' });
+    }
+  
+    const accessToken = await generateAccessToken();
+    const url = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/simulate';
+    const data = {
+      ShortCode: shortCode,
+      CommandID: 'CustomerPayBillOnline',
+      Amount: amount,
+      Msisdn: phoneNumber,
+      BillRefNumber: reference,
+    };
+    console.log('C2B Payment Payload:', data); // Log the payload
+    try {
+      const response = await axios.post(url, data, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      res.json(response.data);
+    } catch (error) {
+      console.error('Error simulating C2B payment:', error.response ? error.response.data : error.message);
+      res.status(500).json({ error: 'Failed to simulate C2B payment' });
+    }
+  });// Handle C2B payment 
 
 // Confirmation URL endpoint
 app.post('/confirmation', (req, res) => {
