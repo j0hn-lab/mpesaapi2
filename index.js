@@ -13,6 +13,8 @@ const consumerKey = process.env.CONSUMER_KEY;
 const consumerSecret = process.env.CONSUMER_SECRET;
 const shortCode = process.env.SHORT_CODE;
 const passKey = process.env.PASS_KEY;
+const confirmationUrl = process.env.CONFIRMATION_URL; // New environment variable
+const validationUrl = process.env.VALIDATION_URL;   // New environment variable
 
 // Generate access token
 const generateAccessToken = async () => {
@@ -23,9 +25,10 @@ const generateAccessToken = async () => {
         Authorization: `Basic ${auth}`,
       },
     });
+    console.log('Access Token:', response.data.access_token); // Log the token
     return response.data.access_token;
   } catch (error) {
-    console.error('Error generating access token:', error);
+    console.error('Error generating access token:', error.response ? error.response.data : error.message);
     throw error;
   }
 };
@@ -37,9 +40,10 @@ app.post('/register-url', async (req, res) => {
   const data = {
     ShortCode: shortCode,
     ResponseType: 'Completed',
-    ConfirmationURL: 'https://nevadablue-1.onrender.com/confirmation', // Updated URL
-    ValidationURL: 'https://nevadablue-1.onrender.com/validation',     // Updated URL
+    ConfirmationURL: confirmationUrl, // Use environment variable
+    ValidationURL: validationUrl,     // Use environment variable
   };
+  console.log('Register URL Payload:', data); // Log the payload
   try {
     const response = await axios.post(url, data, {
       headers: {
@@ -48,22 +52,31 @@ app.post('/register-url', async (req, res) => {
     });
     res.json(response.data);
   } catch (error) {
-    console.error('Error registering URL:', error);
+    console.error('Error registering URL:', error.response ? error.response.data : error.message);
     res.status(500).json({ error: 'Failed to register URL' });
   }
 });
 
 // Handle C2B payment
 app.post('/c2b-payment', async (req, res) => {
+  const { amount, phoneNumber, reference } = req.body;
+
+  // Validate request body
+  if (!amount || !phoneNumber || !reference) {
+    console.error('Invalid request body:', req.body);
+    return res.status(400).json({ error: 'Missing required fields: amount, phoneNumber, reference' });
+  }
+
   const accessToken = await generateAccessToken();
   const url = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/simulate';
   const data = {
     ShortCode: shortCode,
     CommandID: 'CustomerPayBillOnline',
-    Amount: req.body.amount,
-    Msisdn: req.body.phoneNumber,
-    BillRefNumber: req.body.reference,
+    Amount: amount,
+    Msisdn: phoneNumber,
+    BillRefNumber: reference,
   };
+  console.log('C2B Payment Payload:', data); // Log the payload
   try {
     const response = await axios.post(url, data, {
       headers: {
@@ -72,7 +85,7 @@ app.post('/c2b-payment', async (req, res) => {
     });
     res.json(response.data);
   } catch (error) {
-    console.error('Error simulating C2B payment:', error);
+    console.error('Error simulating C2B payment:', error.response ? error.response.data : error.message);
     res.status(500).json({ error: 'Failed to simulate C2B payment' });
   }
 });
