@@ -37,8 +37,8 @@ app.post('/register-url', async (req, res) => {
   const data = {
     ShortCode: shortCode,
     ResponseType: 'Completed',
-    ConfirmationURL: 'https://mpesaapi2.onrender.com/confirmation',
-    ValidationURL: 'https://mpesaapi2.onrender.com/validation',
+    ConfirmationURL: 'https://nevadablue-1.onrender.com/confirmation', // Updated URL
+    ValidationURL: 'https://nevadablue-1.onrender.com/validation',     // Updated URL
   };
   try {
     const response = await axios.post(url, data, {
