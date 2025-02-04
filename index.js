@@ -6,15 +6,15 @@ const axios = require('axios');
 const app = express();
 app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // Updated to use Render's default port
 
 // Load credentials from environment variables
 const consumerKey = process.env.CONSUMER_KEY;
 const consumerSecret = process.env.CONSUMER_SECRET;
 const shortCode = process.env.SHORT_CODE;
 const passKey = process.env.PASS_KEY;
-const confirmationUrl = process.env.CONFIRMATION_URL; // New environment variable
-const validationUrl = process.env.VALIDATION_URL;   // New environment variable
+const confirmationUrl = process.env.CONFIRMATION_URL; // Ensure this URL does not contain "MPESA"
+const validationUrl = process.env.VALIDATION_URL;   // Ensure this URL does not contain "MPESA"
 
 // Generate access token
 const generateAccessToken = async () => {
@@ -57,37 +57,38 @@ app.post('/register-url', async (req, res) => {
   }
 });
 
+// Simulate C2B Payment
 app.post('/c2b-payment', async (req, res) => {
-    const { amount, phoneNumber, reference } = req.body;
-  
-    // Validate request body
-    if (!amount || !phoneNumber || !reference) {
-      console.error('Invalid request body:', req.body);
-      return res.status(400).json({ error: 'Missing required fields: amount, phoneNumber, reference' });
-    }
-  
-    const accessToken = await generateAccessToken();
-    const url = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/simulate';
-    const data = {
-      ShortCode: shortCode,
-      CommandID: 'CustomerPayBillOnline',
-      Amount: amount,
-      Msisdn: phoneNumber,
-      BillRefNumber: reference,
-    };
-    console.log('C2B Payment Payload:', data); // Log the payload
-    try {
-      const response = await axios.post(url, data, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      res.json(response.data);
-    } catch (error) {
-      console.error('Error simulating C2B payment:', error.response ? error.response.data : error.message);
-      res.status(500).json({ error: 'Failed to simulate C2B payment' });
-    }
-  });// Handle C2B payment 
+  const { amount, phoneNumber, reference } = req.body;
+
+  // Validate request body
+  if (!amount || !phoneNumber || !reference) {
+    console.error('Invalid request body:', req.body);
+    return res.status(400).json({ error: 'Missing required fields: amount, phoneNumber, reference' });
+  }
+
+  const accessToken = await generateAccessToken();
+  const url = 'https://sandbox.safaricom.co.ke/mpesa/c2b/v1/simulate';
+  const data = {
+    ShortCode: shortCode,
+    CommandID: 'CustomerPayBillOnline',
+    Amount: amount,
+    Msisdn: phoneNumber,
+    BillRefNumber: reference,
+  };
+  console.log('C2B Payment Payload:', data); // Log the payload
+  try {
+    const response = await axios.post(url, data, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error simulating C2B payment:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: 'Failed to simulate C2B payment' });
+  }
+});
 
 // Confirmation URL endpoint
 app.post('/confirmation', (req, res) => {
@@ -98,9 +99,10 @@ app.post('/confirmation', (req, res) => {
 // Validation URL endpoint
 app.post('/validation', (req, res) => {
   console.log('Validation request received:', req.body);
-  res.status(200).json({ message: 'Validation successful' });
+  res.status(200).json({ ResultCode: 0, ResultDesc: 'Success' }); // Safaricom expects this format
 });
 
+// Start the server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
