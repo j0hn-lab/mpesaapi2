@@ -2,9 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const axios = require('axios');
-
+const cors = require('cors'); // Import the cors package
 const app = express();
+
+// Middleware
 app.use(bodyParser.json());
+app.use(cors()); // Enable CORS for all routes
 
 const PORT = process.env.PORT || 10000; // Use Render's default port
 
