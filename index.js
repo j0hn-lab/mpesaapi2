@@ -6,7 +6,7 @@ const axios = require('axios');
 const app = express();
 app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 10000; // Updated to use Render's default port
+const PORT = process.env.PORT || 10000; // Use Render's default port
 
 // Load credentials from environment variables
 const consumerKey = process.env.CONSUMER_KEY;
